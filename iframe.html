@@ -94,16 +94,16 @@
     const parentDeviceId = getUrlParameter('deviceId');
     const storedDeviceId = localStorage.getItem('amplitudeDeviceId');
     const parentUserId = getUrlParameter('userId');
-
-    const deviceIDToUse = parentDeviceId || storedDeviceID;
-
+    
+    const deviceIdToUse = parentDeviceId || storedDeviceId || null;
+    
     if (deviceIdToUse) {
       localStorage.setItem('amplitudeDeviceId', deviceIdToUse);
     }
 
     window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
-      deviceId: deviceIdToUse, 
-      userId: parentUserId,
+      deviceId: deviceIdToUse,
+      userId: parentUserId || null,
       fetchRemoteConfig: false,
       autocapture: {
         attribution: true,
@@ -117,10 +117,10 @@
 
     window.amplitude.add(window.engagement.plugin());
 
-document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function() {
 
       console.log('Using device ID:', deviceIdToUse);
-      console.log('Using user ID:', parentUserId);
+      console.log('Using user ID:', parentUserId || null);
       
       const triggerButton = document.getElementById('trigger-button');
       if (triggerButton) {
@@ -144,8 +144,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.engagement.boot({
       user: {
-        user_id: parentUserId,
-        device_id: storedDeviceId || window.amplitude.getDeviceId(),
+        user_id: parentUserId || null,
+        device_id: deviceIdToUse || window.amplitude.getDeviceId(),
         user_properties: {}
       }
     }).then(() => {
