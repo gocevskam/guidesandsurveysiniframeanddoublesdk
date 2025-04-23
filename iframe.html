@@ -4,45 +4,9 @@
   <meta charset="UTF-8">
   <title>Iframe Content</title>
   <link rel="stylesheet" href="iframe2.css">
-  <script type="text/javascript">
-  (function(e,t){var n=e.amplitude||{_q:[],_iq:{}};var r=t.createElement("script")
-  ;r.type="text/javascript"
-  ;r.integrity="sha384-5fhzC8Xw3m+x5cBag4AMKRdf900vw3AoaLty2vYfcKIX1iEsYRHZF4RLXIsu2o+F"
-  ;r.crossOrigin="anonymous";r.async=true
-  ;r.src="https://cdn.amplitude.com/libs/amplitude-8.21.4-min.gz.js"
-  ;r.onload=function(){if(!e.amplitude.runQueuedFunctions){console.log(
-  "[Amplitude] Error: could not load SDK")}};var s=t.getElementsByTagName("script"
-  )[0];s.parentNode.insertBefore(r,s);function i(e,t){e.prototype[t]=function(){
-  this._q.push([t].concat(Array.prototype.slice.call(arguments,0)));return this}}
-  var o=function(){this._q=[];return this};var a=["add","append","clearAll",
-  "prepend","set","setOnce","unset","preInsert","postInsert","remove"];for(
-  var c=0;c<a.length;c++){i(o,a[c])}n.Identify=o;var l=function(){this._q=[];
-  return this};var u=["setProductId","setQuantity","setPrice","setRevenueType",
-  "setEventProperties"];for(var p=0;p<u.length;p++){i(l,u[p])}n.Revenue=l;var d=[
-  "init","logEvent","logRevenue","setUserId","setUserProperties","setOptOut",
-  "setVersionName","setDomain","setDeviceId","enableTracking",
-  "setGlobalUserProperties","identify","clearUserProperties","setGroup",
-  "logRevenueV2","regenerateDeviceId","groupIdentify","onInit","onNewSessionStart"
-  ,"logEventWithTimestamp","logEventWithGroups","setSessionId","resetSessionId",
-  "getDeviceId","getUserId","setMinTimeBetweenSessionsMillis",
-  "setEventUploadThreshold","setUseDynamicConfig","setServerZone","setServerUrl",
-  "sendEvents","setLibrary","setTransport"];function v(t){function e(e){t[e
-  ]=function(){t._q.push([e].concat(Array.prototype.slice.call(arguments,0)))}}
-  for(var n=0;n<d.length;n++){e(d[n])}}v(n);n.getInstance=function(e){e=(
-  !e||e.length===0?"$default_instance":e).toLowerCase();if(
-  !Object.prototype.hasOwnProperty.call(n._iq,e)){n._iq[e]={_q:[]};v(n._iq[e])}
-  return n._iq[e]};e.amplitude=n})(window,document);
-  </script>
-
-  <script src="https://cdn.amplitude.com/libs/plugin-engagement-browser-1.0.0-min.js.gz"></script>
-</head>
-<body>
-  <h2>Iframe Content</h2>
-  <div class="main-content">
-    <div id="trigger-button">Click to Trigger Guide</div>
-  </div>
+  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.js"></script>
+  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.engagement.js"></script>
   <script>
-
     function getUrlParameter(name) {
       name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
       var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -50,10 +14,10 @@
       return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
-    const parentDeviceId = getUrlParameter('amp_device_id');
+    const parentDeviceId = getUrlParameter('deviceId');
     const parentUserId = getUrlParameter('userId');
 
-    amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', null, {
+    window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
       deviceId: parentDeviceId || null,
       userId: parentUserId || null,
       fetchRemoteConfig: false,
@@ -67,43 +31,45 @@
       }
     });
 
-    if (window.engagement) {
-      amplitude.add(window.engagement.plugin());
-    }
+    window.amplitude.add(window.engagement.plugin());
+
     document.addEventListener("DOMContentLoaded", function() {
-
-      amplitude.logEvent('Iframe Page Viewed', {
-        page_title: document.title,
-        iframe_url: window.location.href,
-        parent_device_id: parentDeviceId || 'not_provided',
-        cross_domain_tracking: !!parentDeviceId
-      });
-
       const triggerButton = document.getElementById('trigger-button');
       if (triggerButton) {
         triggerButton.addEventListener('click', function() {
-          amplitude.logEvent('Guide Trigger Clicked', {
+          window.amplitude.track('Guide Trigger Clicked', {
             location: 'iframe',
             button_id: 'trigger-button',
-            page_title: document.title
+            page_title: document.title,
+            parent_device_id: parentDeviceId,
+            parent_user_id: parentUserId 
           });
         });
       }
+
+      window.amplitude.track('Iframe Page Viewed', {
+        page_title: document.title,
+        iframe_url: window.location.href
+      });
     });
 
-    if (window.engagement && window.engagement.boot) {
-      window.engagement.boot({
-        user: {
-          user_id: parentUserId || null,
-          device_id: parentDeviceId || amplitude.getDeviceId(),
-          user_properties: {}
-        }
-      }).then(() => {
-        console.log('Guides and Surveys booted successfully');
-      }).catch(error => {
-        console.error('Error booting Guides and Surveys:', error);
-      });
-    }
+    window.engagement.boot({
+      user: {
+        user_id: parentUserId || null,
+        device_id: parentDeviceId || window.amplitude.getDeviceId(),
+        user_properties: {}
+      }
+    }).then(() => {
+      console.log('Guides and Surveys booted successfully');
+    }).catch(error => {
+      console.error('Error booting Guides and Surveys:', error);
+    });
   </script>
+</head>
+<body>
+  <h2>Iframe Content</h2>
+  <div class="main-content">
+    <div id="trigger-button">Click to Trigger Guide</div>
+  </div>
 </body>
 </html>
