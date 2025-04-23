@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -129,6 +129,153 @@
         iframe.addEventListener('load', () => {
           amplitude.logEvent("Iframe Loaded", { iframe_src: iframe.src });
         });
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupFormTracking();
+      setupNavTracking();
+      setupIframeTracking();
+      amplitude.logEvent("Page Viewed", {
+        page_title: document.title,
+        page_url: window.location.href,
+        referrer: document.referrer
+      });
+    });
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" type="x-icon" href="pixelcut-export copy.png">
+  <title>Main Application</title>
+  <link rel="stylesheet" href="iframe.css">
+  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.js"></script>
+  <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.12.1-min.js.gz"></script>
+</head>
+<body>
+
+  <div id="signup-modal">
+    <form id="signup-form">
+      <h2>Sign Up</h2>
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="text" id="surname" placeholder="Surname" required />
+      <input type="email" id="email" placeholder="Email Address" required />
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <div class="top-bar">
+    <h1>Main Application</h1>
+    <nav>
+      <div class="nav-links" id="navLinks">
+        <ul>
+          <li><a href="#home">HOME</a></li>
+          <li><a href="#about">ABOUT</a></li>
+          <li><a href="#how">HOW</a></li>
+          <li><a href="#contact">CONTACT</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="iframe-wrapper">
+    <iframe src="iframe.html"></iframe>
+  </div>
+
+  <script>
+    async function hashEmail(email) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(email);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    const sessionReplayTracking = window.sessionReplay.plugin({ sampleRate: 1 });
+    window.amplitude.add(sessionReplayTracking);
+    window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
+      fetchRemoteConfig: false,
+      autocapture: { attribution: true, pageViews: true, sessions: true }
+    });
+
+    const deviceId = amplitude.getDeviceId();
+    localStorage.setItem('amplitudeDeviceId', deviceId); 
+
+    async function setUserWithHashedEmail(email) {
+      const hashedEmail = await hashEmail(email);
+      amplitude.setUserId(hashedEmail);
+      const identify = new amplitude.Identify();
+      identify.set('email_domain', email.split('@')[1]);
+      amplitude.identify(identify);
+      return hashedEmail;
+    }
+
+    function setupFormTracking() {
+      const form = document.getElementById('signup-form');
+      if (!form) return;
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const name = document.getElementById('name').value;
+        const surname = document.getElementById('surname').value;
+
+        await setUserWithHashedEmail(email);
+
+        amplitude.logEvent("Sign Up Form Submitted", {
+          form_name: "signup-form",
+          has_name: !!name,
+          has_surname: !!surname
+        });
+
+        const modal = document.getElementById('signup-modal');
+        modal.style.display = 'none';
+
+        const successMessage = document.createElement('div');
+        successMessage.innerText = "Thanks for signing up!";
+        Object.assign(successMessage.style, {
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#32c8c5',
+          color: 'white',
+          padding: '20px',
+          borderRadius: '10px',
+          zIndex: 10000
+        });
+        document.body.appendChild(successMessage);
+
+        setTimeout(() => {
+          successMessage.remove();
+        }, 1500);
+      });
+    }
+
+    function setupNavTracking() {
+      document.querySelectorAll(".nav-links a").forEach(link => {
+        link.addEventListener("click", function () {
+          amplitude.logEvent("Nav Button Clicked", {
+            button_name: this.textContent.trim(),
+            button_href: this.href,
+            origin: "Homepage"
+          });
+        });
+      });
+    }
+
+    function setupIframeTracking() {
+      const iframe = document.querySelector('.iframe-wrapper iframe');
+      if (iframe) {
+        const currentSrc = iframe.src;
+        const storedDeviceId = localStorage.getItem('amplitudeDeviceId');
+        const userId = amplitude.getUserId();
+        const separator = currentSrc.includes('?') ? '&' : '?';
+        iframe.src = `${currentSrc}${separator}deviceId=${encodeURIComponent(storedDeviceId)}&userId=${encodeURIComponent(userId || '')}`;
       }
     }
 
