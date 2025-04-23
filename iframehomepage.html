@@ -173,27 +173,20 @@
     <nav>
       <div class="nav-links" id="navLinks">
         <ul>
-          <li><a href="#home">HOME</a></li>
-          <li><a href="#about">ABOUT</a></li>
-          <li><a href="#how">HOW</a></li>
-          <li><a href="#contact">CONTACT</a></li>
+          <li><a href="#home" class="nav-link">HOME</a></li>
+          <li><a href="#about" class="nav-link">ABOUT</a></li>
+          <li><a href="#how" class="nav-link">HOW</a></li>
+          <li><a href="#contact" class="nav-link">CONTACT</a></li>
         </ul>
       </div>
     </nav>
   </div>
 
   <div class="iframe-wrapper">
-    <iframe src="iframe.html"></iframe>
+    <iframe src="iframe.html" id="content-iframe"></iframe>
   </div>
 
   <script>
-    async function hashEmail(email) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(email);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
 
     const sessionReplayTracking = window.sessionReplay.plugin({ sampleRate: 1 });
     window.amplitude.add(sessionReplayTracking);
@@ -202,8 +195,25 @@
       autocapture: { attribution: true, pageViews: true, sessions: true }
     });
 
-    const deviceId = amplitude.getDeviceId();
-    localStorage.setItem('amplitudeDeviceId', deviceId); 
+    setTimeout(() => {
+      const deviceId = window.amplitude.getDeviceId();
+      if (deviceId) {
+        console.log('Amplitude Device ID:', deviceId);
+        localStorage.setItem('amplitudeDeviceId', deviceId);
+      } else {
+        console.error('Failed to get Amplitude Device ID');
+      }
+      
+      setupIframeTracking();
+    }, 500);
+
+    async function hashEmail(email) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(email);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     async function setUserWithHashedEmail(email) {
       const hashedEmail = await hashEmail(email);
@@ -211,6 +221,9 @@
       const identify = new amplitude.Identify();
       identify.set('email_domain', email.split('@')[1]);
       amplitude.identify(identify);
+      
+      setupIframeTracking();
+      
       return hashedEmail;
     }
 
@@ -259,34 +272,65 @@
     function setupNavTracking() {
       document.querySelectorAll(".nav-links a").forEach(link => {
         link.addEventListener("click", function (e) {
+
+          const deviceId = window.amplitude.getDeviceId();
+          if (deviceId) {
+            localStorage.setItem('amplitudeDeviceId', deviceId);
+          }
+          
           amplitude.logEvent("Nav Button Clicked", {
             button_name: this.textContent.trim(),
             button_href: this.href,
-            origin: "Homepage"
+            origin: "Homepage",
+            device_id: deviceId 
           });
+
+          setTimeout(setupIframeTracking, 100);
         });
       });
     }
 
     function setupIframeTracking() {
-      const iframe = document.querySelector('.iframe-wrapper iframe');
+      const iframe = document.querySelector('#content-iframe');
       if (iframe) {
-        const currentSrc = iframe.src;
-        const storedDeviceId = localStorage.getItem('amplitudeDeviceId');
-        const userId = amplitude.getUserId();
-        const separator = currentSrc.includes('?') ? '&' : '?';
-        iframe.src = `${currentSrc}${separator}deviceId=${encodeURIComponent(storedDeviceId)}&userId=${encodeURIComponent(userId || '')}`;
+        const currentSrc = iframe.src.split('?')[0]; 
+        const deviceId = window.amplitude.getDeviceId() || localStorage.getItem('amplitudeDeviceId');
+        const userId = window.amplitude.getUserId();
+        
+
+        let newSrc = currentSrc;
+        const queryParams = [];
+        
+        if (deviceId) {
+          queryParams.push(`deviceId=${encodeURIComponent(deviceId)}`);
+        }
+        
+        if (userId) {
+          queryParams.push(`userId=${encodeURIComponent(userId)}`);
+        }
+        
+        if (queryParams.length > 0) {
+          newSrc += '?' + queryParams.join('&');
+        }
+        
+
+        if (iframe.src !== newSrc) {
+          console.log('Updating iframe src with device ID:', deviceId);
+          iframe.src = newSrc;
+        }
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       setupFormTracking();
       setupNavTracking();
-      setupIframeTracking();
+      
+
       amplitude.logEvent("Page Viewed", {
         page_title: document.title,
         page_url: window.location.href,
-        referrer: document.referrer
+        referrer: document.referrer,
+        device_id: window.amplitude.getDeviceId() 
       });
     });
   </script>
