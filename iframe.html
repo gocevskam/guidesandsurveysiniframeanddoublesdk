@@ -91,12 +91,19 @@
       return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
+    const parentDeviceId = getUrlParameter('deviceId');
     const storedDeviceId = localStorage.getItem('amplitudeDeviceId');
     const parentUserId = getUrlParameter('userId');
 
+    const deviceIDToUse = parentDeviceId || storedDeviceID;
+
+    if (deviceIdToUse) {
+      localStorage.setItem('amplitudeDeviceId', deviceIdToUse);
+    }
+
     window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
-      deviceId: storedDeviceId || null, 
-      userId: parentUserId || null,
+      deviceId: deviceIdToUse, 
+      userId: parentUserId,
       fetchRemoteConfig: false,
       autocapture: {
         attribution: true,
@@ -110,7 +117,11 @@
 
     window.amplitude.add(window.engagement.plugin());
 
-    document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
+
+      console.log('Using device ID:', deviceIdToUse);
+      console.log('Using user ID:', parentUserId);
+      
       const triggerButton = document.getElementById('trigger-button');
       if (triggerButton) {
         triggerButton.addEventListener('click', function() {
@@ -118,7 +129,7 @@
             location: 'iframe',
             button_id: 'trigger-button',
             page_title: document.title,
-            parent_device_id: storedDeviceId,
+            parent_device_id: deviceIdToUse,
             parent_user_id: parentUserId
           });
         });
@@ -126,13 +137,14 @@
 
       window.amplitude.track('Iframe Page Viewed', {
         page_title: document.title,
-        iframe_url: window.location.href
+        iframe_url: window.location.href,
+        device_id_source: parentDeviceId ? 'url_parameter' : (storedDeviceId ? 'local_storage' : 'new_generation')
       });
     });
 
     window.engagement.boot({
       user: {
-        user_id: parentUserId || null,
+        user_id: parentUserId,
         device_id: storedDeviceId || window.amplitude.getDeviceId(),
         user_properties: {}
       }
