@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+
+h2 {
+  margin: 20px 0;
+  font-size: 28px;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+#trigger-button {
+  padding: 20px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  text-align: center;
+  width: 200px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+#trigger-button:hover {
+  background-color: #e0e0e0;
+}
+
+.iframe-wrapper {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+}

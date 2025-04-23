@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Iframe Content</title>
+  <link rel="stylesheet" href="/Users/giuliano.giannini/Desktop/Projects/G&S in iFrame/iframe2.css">
+  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.js"></script>
+  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.engagement.js"></script>
+  <script>
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    const parentDeviceId = getUrlParameter('deviceId');
+    const parentUserId = getUrlParameter('userId');
+
+    window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
+      deviceId: parentDeviceId || null,
+      userId: parentUserId || null,
+      fetchRemoteConfig: false,
+      autocapture: {
+        attribution: true,
+        pageViews: true,
+        sessions: true,
+        fileDownload: false,
+        formInteractions: false,
+        elementInteractions: false
+      }
+    });
+
+    window.amplitude.add(window.engagement.plugin());
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const triggerButton = document.getElementById('trigger-button');
+      if (triggerButton) {
+        triggerButton.addEventListener('click', function() {
+          window.amplitude.track('Guide Trigger Clicked', {
+            location: 'iframe',
+            button_id: 'trigger-button',
+            page_title: document.title,
+            parent_device_id: parentDeviceId,
+            parent_user_id: parentUserId 
+          });
+        });
+      }
+
+      window.amplitude.track('Iframe Page Viewed', {
+        page_title: document.title,
+        iframe_url: window.location.href
+      });
+    });
+
+    window.engagement.boot({
+      user: {
+        user_id: parentUserId || null,
+        device_id: parentDeviceId || window.amplitude.getDeviceId(),
+        user_properties: {}
+      }
+    }).then(() => {
+      console.log('Guides and Surveys booted successfully');
+    }).catch(error => {
+      console.error('Error booting Guides and Surveys:', error);
+    });
+  </script>
+</head>
+<body>
+  <h2>Iframe Content</h2>
+  <div class="main-content">
+    <div id="trigger-button">Click to Trigger Guide</div>
+  </div>
+</body>
+</html>
