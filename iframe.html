@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>Iframe Content</title>
   <link rel="stylesheet" href="iframe2.css">
-  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.js"></script>
-  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.engagement.js"></script>
+  <script src="https://cdn.amplitude.com/script/9776f21e2fa171dfaaaac9bd3fd31a4d.js"></script>
+  <script src="https://cdn.amplitude.com/script/9776f21e2fa171dfaaaac9bd3fd31a4d.engagement.js"></script>
   <script>
     function getUrlParameter(name) {
       name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -17,7 +17,7 @@
     const parentDeviceId = getUrlParameter('deviceId');
     const parentUserId = getUrlParameter('userId');
 
-    window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
+    window.amplitude.init('9776f21e2fa171dfaaaac9bd3fd31a4d', {
       deviceId: parentDeviceId || null,
       userId: parentUserId || null,
       fetchRemoteConfig: false,
@@ -81,8 +81,8 @@
   <meta charset="UTF-8">
   <title>Iframe Content</title>
   <link rel="stylesheet" href="iframe2.css">
-  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.js"></script>
-  <script src="https://cdn.amplitude.com/script/7b69efeb77de31ce9328e6a6a45d80a6.engagement.js"></script>
+  <script src="https://cdn.amplitude.com/script/9776f21e2fa171dfaaaac9bd3fd31a4d"></script>
+  <script src="https://cdn.amplitude.com/script/9776f21e2fa171dfaaaac9bd3fd31a4d.engagement.js"></script>
   <script>
     function getUrlParameter(name) {
       name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -101,7 +101,7 @@
       localStorage.setItem('amplitudeDeviceId', deviceIdToUse);
     }
 
-    window.amplitude.init('7b69efeb77de31ce9328e6a6a45d80a6', {
+    window.amplitude.init('9776f21e2fa171dfaaaac9bd3fd31a4d', {
       deviceId: deviceIdToUse,
       userId: parentUserId || null,
       fetchRemoteConfig: false,
